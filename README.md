@@ -1,6 +1,6 @@
 # Less parser for ProcessWire 
 
-This is a ProcessWire module front-end for the [Wikimedia LESS parser](https://github.com/wikimedia/less.php).
+This is a ProcessWire module wrapper for the [Wikimedia LESS parser](https://github.com/wikimedia/less.php).
 Originally developed by Bernhard Baumrock with additions by Ryan Cramer. Requires ProcessWire 3.0.164+. 
 
 ## Install
