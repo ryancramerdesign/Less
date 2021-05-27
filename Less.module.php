@@ -25,7 +25,7 @@ class Less extends WireData implements Module {
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Less',
-			'version' => 1,
+			'version' => 2,
 			'summary' => 'Less Parser for ProcessWire',
 			'author' => 'Bernhard Baumrock, Ryan Cramer',
 			'icon' => 'css3',
@@ -126,13 +126,14 @@ class Less extends WireData implements Module {
 	/**
 	 * Add a LESS file to parse 
 	 * 
-	 * @param sring $file
+	 * @param string $file
+	 * @param string $url Optional root URL of the file
 	 * @return self
 	 * @throws \Less_Exception_Parser
 	 * 
 	 */
-	public function parseFile($file) {
-		$this->parser()->parsefile($file);
+	public function parseFile($file, $url = '') {
+		$this->parser()->parsefile($file, $url);
 		return $this;
 	}
 
@@ -146,6 +147,21 @@ class Less extends WireData implements Module {
 	 */
 	public function addFile($file) {
 		return $this->parseFile($file);
+	}
+
+	/**
+	 * Add multiple LESS files to parse
+	 *
+	 * @param array $files
+	 * @return self
+	 * @throws \Less_Exception_Parser
+	 *
+	 */
+	public function addFiles(array $files) {
+		foreach($files as $file) {
+			$this->addFile($file);
+		}
+		return $this;
 	}
 
 	/**
@@ -163,16 +179,28 @@ class Less extends WireData implements Module {
 	 * Save to CSS file
 	 * 
 	 * @param string $file
-	 * @param string|null $css CSS to save or omit to save CSS compiled from added .less files
-	 * @return array
+	 * @param array $options
+	 *  - `css` (string|null): CSS to save or omit to save CSS compiled from added .less files.
+	 *  - `replacements` (array): Associative array of [ 'find' => 'replace' ] for saved CSS. 
+	 * @return int|bool Number of bytes written or boolean false on fail
 	 * @throws WireException
 	 * 
 	 */
-	public function saveCss($file, $css = null) {
+	public function saveCss($file, array $options = array()) {
+		$defaults = array(
+			'css' => null, 
+			'replacements' => array(),
+		);
+		$options = array_merge($defaults, $options);
 		$files = $this->wire()->files;
 		$file = $files->unixFileName($file);
+		$css = $options['css'];
 		if(empty($css)) $css = $this->parser()->getCss();
 		if(empty($css)) return false;
+		if(!empty($options['replacements'])) {
+			$a = $options['replacements'];
+			$css = str_replace(array_keys($a), array_values($a), $css);
+		}
 		return $files->filePutContents($file, $css);
 	}
 
