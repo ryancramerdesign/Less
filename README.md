@@ -11,12 +11,13 @@ Originally developed by Bernhard Baumrock with additions by Ryan Cramer. Require
 
 ## API usage
 
-### Compile two .less files to a css file
+### Compile string and two .less files to a css file
 ~~~~~
 $less = $modules->get('Less');
 $less->setOption('compress', true);
+$less->addStr('@color: #4D926F; h2 { color: @color; }');
 $less->addFile('/path/to/file1.less');
-$less->addFile('/path/to/file2.less'); 
+$less->addFile('/path/to/file2.less', '/url/to/images/'); 
 $less->saveCss('/path/to/file.min.css'); 
 ~~~~~
 
@@ -31,8 +32,8 @@ For details about API methods you can access from `$parser` see: <https://github
 ## Usage with ProcessWire’s AdminThemeUikit module
 
 Install this module to add the ability to customize the ProcessWire core AdminThemeUikit admin theme module CSS.
-For this usage, you must have ProcessWire 3.0.179 or newer. This section will be completed once the feature is
-available in ProcessWire.
+For this usage, you must have ProcessWire 3.0.179 or newer. See instructions here:
+<https://processwire.com/blog/posts/pw-3.0.179/>
 
 ## License
 
