@@ -27,7 +27,7 @@ class Less extends WireData implements Module, ConfigurableModule {
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Less',
-			'version' => 3,
+			'version' => 4,
 			'summary' => 'Less CSS preprocessor for ProcessWire using Wikimedia Less.',
 			'author' => 'Bernhard Baumrock, Ryan Cramer',
 			'icon' => 'css3',
@@ -252,6 +252,7 @@ class Less extends WireData implements Module, ConfigurableModule {
 		$defaults = array(
 			'css' => null, 
 			'replacements' => array(),
+			'vars' => [],
 		);
 		
 		$options = array_merge($defaults, $options);
@@ -263,6 +264,10 @@ class Less extends WireData implements Module, ConfigurableModule {
 		if(is_file($file) && !is_writable($file)) throw new WireException("File not writable: $file"); 
 		if(!is_dir($path)) throw new WireException("Path does not exist: $path");
 		if(!is_writable($path)) throw new WireException("Path not writeable: $path");
+		
+		// this makes it possible to set variables from PHP (eg inputfields)
+		$vars = $options['vars'];
+		if(is_array($vars) AND count($vars)) $this->parser()->ModifyVars($vars);
 	
 		if(empty($css)) $css = $this->getCss();
 		if(empty($css)) $css = '/* no output from LESS parser */';
