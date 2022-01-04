@@ -253,6 +253,7 @@ class Less extends WireData implements Module, ConfigurableModule {
 			'css' => null, 
 			'replacements' => array(),
 			'vars' => [],
+			'parse' => '',
 		);
 		
 		$options = array_merge($defaults, $options);
@@ -268,6 +269,10 @@ class Less extends WireData implements Module, ConfigurableModule {
 		// this makes it possible to set variables from PHP (eg inputfields)
 		$vars = $options['vars'];
 		if(is_array($vars) AND count($vars)) $this->parser()->ModifyVars($vars);
+
+		// this makes it possible to parse LESS from a given string
+		$parse = $options['parse'];
+		if(is_string($parse)) $this->parser()->parse($parse);
 	
 		if(empty($css)) $css = $this->getCss();
 		if(empty($css)) $css = '/* no output from LESS parser */';
