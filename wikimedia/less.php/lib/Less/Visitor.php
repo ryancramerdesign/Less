@@ -1,15 +1,11 @@
 <?php
-
 /**
- * Visitor
- *
- * @package Less
- * @subpackage visitor
+ * @private
  */
 class Less_Visitor {
 
-	protected $methods = array();
-	protected $_visitFnCache = array();
+	protected $methods = [];
+	protected $_visitFnCache = [];
 
 	public function __construct() {
 		$this->_visitFnCache = get_class_methods( get_class( $this ) );
@@ -17,9 +13,8 @@ class Less_Visitor {
 	}
 
 	public function visitObj( $node ) {
-		$funcName = 'visit'.$node->type;
+		$funcName = 'visit' . str_replace( [ 'Less_Tree_', '_' ], '', get_class( $node ) );
 		if ( isset( $this->_visitFnCache[$funcName] ) ) {
-
 			$visitDeeper = true;
 			$this->$funcName( $node, $visitDeeper );
 
@@ -27,7 +22,7 @@ class Less_Visitor {
 				$node->accept( $this );
 			}
 
-			$funcName = $funcName . "Out";
+			$funcName .= "Out";
 			if ( isset( $this->_visitFnCache[$funcName] ) ) {
 				$this->$funcName( $node );
 			}
@@ -40,7 +35,9 @@ class Less_Visitor {
 	}
 
 	public function visitArray( $nodes ) {
-		array_map( array( $this,'visitObj' ), $nodes );
+		foreach ( $nodes as $node ) {
+			$this->visitObj( $node );
+		}
 		return $nodes;
 	}
 }

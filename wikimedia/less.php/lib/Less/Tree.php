@@ -2,13 +2,12 @@
 
 /**
  * Tree
- *
- * @package Less
- * @subpackage tree
  */
 class Less_Tree {
 
-	public $cache_string;
+	public $parensInOp = false;
+	public $extendOnEveryPath;
+	public $allExtends;
 
 	public function toCSS() {
 		$output = new Less_Output();
@@ -25,7 +24,12 @@ class Less_Tree {
 	public function genCSS( $output ) {
 	}
 
+	public function compile( $env ) {
+		return $this;
+	}
+
 	/**
+	 * @param Less_Output $output
 	 * @param Less_Tree_Ruleset[] $rules
 	 */
 	public static function outputRuleset( $output, $rules ) {
@@ -45,8 +49,8 @@ class Less_Tree {
 		}
 
 		// Non-compressed
-		$tabSetStr = "\n".str_repeat( Less_Parser::$options['indentation'], Less_Environment::$tabLevel - 1 );
-		$tabRuleStr = $tabSetStr.Less_Parser::$options['indentation'];
+		$tabSetStr = "\n" . str_repeat( Less_Parser::$options['indentation'], Less_Environment::$tabLevel - 1 );
+		$tabRuleStr = $tabSetStr . Less_Parser::$options['indentation'];
 
 		$output->add( " {" );
 		for ( $i = 0; $i < $ruleCnt; $i++ ) {
@@ -54,8 +58,7 @@ class Less_Tree {
 			$rules[$i]->genCSS( $output );
 		}
 		Less_Environment::$tabLevel--;
-		$output->add( $tabSetStr.'}' );
-
+		$output->add( $tabSetStr . '}' );
 	}
 
 	public function accept( $visitor ) {
@@ -64,6 +67,7 @@ class Less_Tree {
 	public static function ReferencedArray( $rules ) {
 		foreach ( $rules as $rule ) {
 			if ( method_exists( $rule, 'markReferenced' ) ) {
+				// @phan-suppress-next-line PhanUndeclaredMethod
 				$rule->markReferenced();
 			}
 		}

@@ -1,16 +1,15 @@
 <?php
-
 /**
- * Value
- *
- * @package Less
- * @subpackage tree
+ * @private
  */
-class Less_Tree_Value extends Less_Tree {
+class Less_Tree_Value extends Less_Tree implements Less_Tree_HasValueProperty {
 
-	public $type = 'Value';
+	/** @var Less_Tree[] */
 	public $value;
 
+	/**
+	 * @param array<Less_Tree> $value
+	 */
 	public function __construct( $value ) {
 		$this->value = $value;
 	}
@@ -20,13 +19,13 @@ class Less_Tree_Value extends Less_Tree {
 	}
 
 	public function compile( $env ) {
-		$ret = array();
+		$ret = [];
 		$i = 0;
 		foreach ( $this->value as $i => $v ) {
 			$ret[] = $v->compile( $env );
 		}
 		if ( $i > 0 ) {
-			return new Less_Tree_Value( $ret );
+			return new self( $ret );
 		}
 		return $ret[0];
 	}
@@ -34,7 +33,7 @@ class Less_Tree_Value extends Less_Tree {
 	/**
 	 * @see Less_Tree::genCSS
 	 */
-	function genCSS( $output ) {
+	public function genCSS( $output ) {
 		$len = count( $this->value );
 		for ( $i = 0; $i < $len; $i++ ) {
 			$this->value[$i]->genCSS( $output );

@@ -1,17 +1,12 @@
 <?php
-
 /**
- * Expression
- *
- * @package Less
- * @subpackage tree
+ * @private
  */
-class Less_Tree_Expression extends Less_Tree {
+class Less_Tree_Expression extends Less_Tree implements Less_Tree_HasValueProperty {
 
-	public $value = array();
+	/** @var Less_Tree[] */
+	public $value = [];
 	public $parens = false;
-	public $parensInOp = false;
-	public $type = 'Expression';
 
 	public function __construct( $value, $parens = null ) {
 		$this->value = $value;
@@ -36,15 +31,15 @@ class Less_Tree_Expression extends Less_Tree {
 
 			if ( $count > 1 ) {
 
-				$ret = array();
+				$ret = [];
 				foreach ( $this->value as $e ) {
 					$ret[] = $e->compile( $env );
 				}
-				$returnValue = new Less_Tree_Expression( $ret );
+				$returnValue = new self( $ret );
 
 			} else {
 
-				if ( ( $this->value[0] instanceof Less_Tree_Expression ) && $this->value[0]->parens && !$this->value[0]->parensInOp ) {
+				if ( ( $this->value[0] instanceof self ) && $this->value[0]->parens && !$this->value[0]->parensInOp ) {
 					$doubleParen = true;
 				}
 
@@ -82,7 +77,7 @@ class Less_Tree_Expression extends Less_Tree {
 
 	public function throwAwayComments() {
 		if ( is_array( $this->value ) ) {
-			$new_value = array();
+			$new_value = [];
 			foreach ( $this->value as $v ) {
 				if ( $v instanceof Less_Tree_Comment ) {
 					continue;

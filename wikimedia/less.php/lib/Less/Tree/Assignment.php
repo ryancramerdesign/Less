@@ -1,16 +1,11 @@
 <?php
-
 /**
- * Assignment
- *
- * @package Less
- * @subpackage tree
+ * @private
  */
-class Less_Tree_Assignment extends Less_Tree {
+class Less_Tree_Assignment extends Less_Tree implements Less_Tree_HasValueProperty {
 
 	public $key;
 	public $value;
-	public $type = 'Assignment';
 
 	public function __construct( $key, $val ) {
 		$this->key = $key;
@@ -22,7 +17,7 @@ class Less_Tree_Assignment extends Less_Tree {
 	}
 
 	public function compile( $env ) {
-		return new Less_Tree_Assignment( $this->key, $this->value->compile( $env ) );
+		return new self( $this->key, $this->value->compile( $env ) );
 	}
 
 	/**

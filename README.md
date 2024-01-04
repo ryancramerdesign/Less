@@ -3,6 +3,11 @@
 This is a ProcessWire module wrapper for the [Wikimedia LESS parser](https://github.com/wikimedia/less.php).
 Originally developed by Bernhard Baumrock with additions by Ryan Cramer. Requires ProcessWire 3.0.164+. 
 
+## Requirements
+
+- ProcessWire 3.0.179 or newer (3.0.229+ preferable)
+- PHP 7.4 or newer
+
 ## Install
 
 1. Copy all files included in this module into new directory `/site/modules/Less/`.
@@ -27,7 +32,8 @@ $parser = $less->parser();
 $parser->parseFile('/path/to/file.less');
 $css = $parser->getCss();
 ~~~~~
-For details about API methods you can access from `$parser` see: <https://github.com/wikimedia/less.php>
+For details about API methods you can access from `$parser` see: 
+<https://github.com/wikimedia/less.php/blob/v4.1.1/API.md>
 
 ## Usage with ProcessWire’s AdminThemeUikit module
 
@@ -38,4 +44,3 @@ For this usage, you must have ProcessWire 3.0.179 or newer. See instructions her
 ## License
 
 This module uses the Apache license for consistency with the Wikimedia LESS parser license.
-

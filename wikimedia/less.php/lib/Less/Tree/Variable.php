@@ -1,10 +1,6 @@
 <?php
-
 /**
- * Variable
- *
- * @package Less
- * @subpackage tree
+ * @private
  */
 class Less_Tree_Variable extends Less_Tree {
 
@@ -12,7 +8,6 @@ class Less_Tree_Variable extends Less_Tree {
 	public $index;
 	public $currentFileInfo;
 	public $evaluating = false;
-	public $type = 'Variable';
 
 	/**
 	 * @param string $name
@@ -23,9 +18,16 @@ class Less_Tree_Variable extends Less_Tree {
 		$this->currentFileInfo = $currentFileInfo;
 	}
 
+	/**
+	 * @param Less_Environment $env
+	 * @return Less_Tree|Less_Tree_Keyword|Less_Tree_Quoted
+	 * @see less-2.5.3.js#Ruleset.prototype.eval
+	 */
 	public function compile( $env ) {
 		if ( $this->name[1] === '@' ) {
-			$v = new Less_Tree_Variable( substr( $this->name, 1 ), $this->index + 1, $this->currentFileInfo );
+			$v = new self( substr( $this->name, 1 ), $this->index + 1, $this->currentFileInfo );
+			// While some Less_Tree nodes have no 'value', we know these can't occur after a
+			// variable assignment (would have been a ParseError).
 			$name = '@' . $v->compile( $env )->value;
 		} else {
 			$name = $this->name;
@@ -45,7 +47,7 @@ class Less_Tree_Variable extends Less_Tree {
 			}
 		}
 
-		throw new Less_Exception_Compiler( "variable " . $name . " is undefined in file ".$this->currentFileInfo["filename"], null, $this->index, $this->currentFileInfo );
+		throw new Less_Exception_Compiler( "variable " . $name . " is undefined in file " . $this->currentFileInfo["filename"], null, $this->index, $this->currentFileInfo );
 	}
 
 }

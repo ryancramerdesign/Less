@@ -1,10 +1,6 @@
 <?php
-
 /**
- * Condition
- *
- * @package Less
- * @subpackage tree
+ * @private
  */
 class Less_Tree_Condition extends Less_Tree {
 
@@ -13,7 +9,6 @@ class Less_Tree_Condition extends Less_Tree {
 	public $rvalue;
 	public $index;
 	public $negate;
-	public $type = 'Condition';
 
 	public function __construct( $op, $l, $r, $i = 0, $negate = false ) {
 		$this->op = trim( $op );
@@ -35,11 +30,11 @@ class Less_Tree_Condition extends Less_Tree {
 		switch ( $this->op ) {
 			case 'and':
 				$result = $a && $b;
-			break;
+				break;
 
 			case 'or':
 				$result = $a || $b;
-			break;
+				break;
 
 			default:
 				if ( Less_Parser::is_method( $a, 'compare' ) ) {
@@ -53,17 +48,17 @@ class Less_Tree_Condition extends Less_Tree {
 				switch ( $result ) {
 					case -1:
 					$result = $this->op === '<' || $this->op === '=<' || $this->op === '<=';
-					break;
+						break;
 
-					case  0:
+					case 0:
 					$result = $this->op === '=' || $this->op === '>=' || $this->op === '=<' || $this->op === '<=';
-					break;
+						break;
 
-					case  1:
+					case 1:
 					$result = $this->op === '>' || $this->op === '>=';
-					break;
+						break;
 				}
-			break;
+				break;
 		}
 
 		return $this->negate ? !$result : $result;

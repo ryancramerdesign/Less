@@ -1,19 +1,14 @@
 <?php
-
 /**
- * Unit
- *
- * @package Less
- * @subpackage tree
+ * @private
  */
 class Less_Tree_Unit extends Less_Tree {
 
-	var $numerator = array();
-	var $denominator = array();
+	public $numerator = [];
+	public $denominator = [];
 	public $backupUnit;
-	public $type = 'Unit';
 
-	public function __construct( $numerator = array(), $denominator = array(), $backupUnit = null ) {
+	public function __construct( $numerator = [], $denominator = [], $backupUnit = null ) {
 		$this->numerator = $numerator;
 		$this->denominator = $denominator;
 		$this->backupUnit = $backupUnit;
@@ -32,14 +27,13 @@ class Less_Tree_Unit extends Less_Tree {
 			$output->add( $this->denominator[0] );
 		} elseif ( !Less_Parser::$options['strictUnits'] && $this->backupUnit ) {
 			$output->add( $this->backupUnit );
-			return;
 		}
 	}
 
 	public function toString() {
 		$returnStr = implode( '*', $this->numerator );
 		foreach ( $this->denominator as $d ) {
-			$returnStr .= '/'.$d;
+			$returnStr .= '/' . $d;
 		}
 		return $returnStr;
 	}
@@ -49,7 +43,7 @@ class Less_Tree_Unit extends Less_Tree {
 	}
 
 	/**
-	 * @param Less_Tree_Unit $other
+	 * @param self $other
 	 */
 	public function compare( $other ) {
 		return $this->is( $other->toString() ) ? 0 : -1;
@@ -61,7 +55,7 @@ class Less_Tree_Unit extends Less_Tree {
 
 	public function isLength() {
 		$css = $this->toCSS();
-		return !!preg_match( '/px|em|%|in|cm|mm|pc|pt|ex/', $css );
+		return (bool)preg_match( '/px|em|%|in|cm|mm|pc|pt|ex/', $css );
 	}
 
 	public function isAngle() {
@@ -77,7 +71,7 @@ class Less_Tree_Unit extends Less_Tree {
 	}
 
 	public function usedUnits() {
-		$result = array();
+		$result = [];
 
 		foreach ( Less_Tree_UnitConversions::$groups as $groupName ) {
 			$group = Less_Tree_UnitConversions::${$groupName};
@@ -99,25 +93,25 @@ class Less_Tree_Unit extends Less_Tree {
 	}
 
 	public function cancel() {
-		$counter = array();
+		$counter = [];
 		$backup = null;
 
 		foreach ( $this->numerator as $atomicUnit ) {
 			if ( !$backup ) {
 				$backup = $atomicUnit;
 			}
-			$counter[$atomicUnit] = ( isset( $counter[$atomicUnit] ) ? $counter[$atomicUnit] : 0 ) + 1;
+			$counter[$atomicUnit] = ( $counter[$atomicUnit] ?? 0 ) + 1;
 		}
 
 		foreach ( $this->denominator as $atomicUnit ) {
 			if ( !$backup ) {
 				$backup = $atomicUnit;
 			}
-			$counter[$atomicUnit] = ( isset( $counter[$atomicUnit] ) ? $counter[$atomicUnit] : 0 ) - 1;
+			$counter[$atomicUnit] = ( $counter[$atomicUnit] ?? 0 ) - 1;
 		}
 
-		$this->numerator = array();
-		$this->denominator = array();
+		$this->numerator = [];
+		$this->denominator = [];
 
 		foreach ( $counter as $atomicUnit => $count ) {
 			if ( $count > 0 ) {

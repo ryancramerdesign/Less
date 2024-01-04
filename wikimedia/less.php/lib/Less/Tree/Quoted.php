@@ -1,18 +1,14 @@
 <?php
-
 /**
- * Quoted
- *
- * @package Less
- * @subpackage tree
+ * @private
  */
-class Less_Tree_Quoted extends Less_Tree {
+class Less_Tree_Quoted extends Less_Tree implements Less_Tree_HasValueProperty {
 	public $escaped;
+	/** @var string */
 	public $value;
 	public $quote;
 	public $index;
 	public $currentFileInfo;
-	public $type = 'Quoted';
 
 	/**
 	 * @param string $str
@@ -43,9 +39,9 @@ class Less_Tree_Quoted extends Less_Tree {
 	public function compile( $env ) {
 		$value = $this->value;
 		if ( preg_match_all( '/`([^`]+)`/', $this->value, $matches ) ) {
-			foreach ( $matches as $i => $match ) {
-				$js = new Less_Tree_JavaScript( $matches[1], $this->index, true );
-				$js = $js->compile()->value;
+			foreach ( $matches[1] as $i => $match ) {
+				$js = new Less_Tree_JavaScript( $match, $this->index, true );
+				$js = $js->compile( $env )->value;
 				$value = str_replace( $matches[0][$i], $js, $value );
 			}
 		}
@@ -54,12 +50,12 @@ class Less_Tree_Quoted extends Less_Tree {
 			foreach ( $matches[1] as $i => $match ) {
 				$v = new Less_Tree_Variable( '@' . $match, $this->index, $this->currentFileInfo );
 				$v = $v->compile( $env );
-				$v = ( $v instanceof Less_Tree_Quoted ) ? $v->value : $v->toCSS();
+				$v = ( $v instanceof self ) ? $v->value : $v->toCSS();
 				$value = str_replace( $matches[0][$i], $v, $value );
 			}
 		}
 
-		return new Less_Tree_Quoted( $this->quote . $value . $this->quote, $value, $this->escaped, $this->index, $this->currentFileInfo );
+		return new self( $this->quote . $value . $this->quote, $value, $this->escaped, $this->index, $this->currentFileInfo );
 	}
 
 	public function compare( $x ) {
