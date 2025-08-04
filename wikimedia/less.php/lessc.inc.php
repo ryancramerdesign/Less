@@ -14,13 +14,20 @@ if ( !class_exists( 'Less_Parser' ) ) {
 
 class lessc {
 
+	/** @var string */
 	public static $VERSION = Less_Version::less_version;
 
+	/** @var string|string[] */
 	public $importDir = '';
+	/** @var array<string,int> */
 	protected $allParsedFiles = [];
+	/** @var array<string,callable> */
 	protected $libFunctions = [];
+	/** @var array */
 	protected $registeredVars = [];
+	/** @var string */
 	private $formatterName;
+	/** @var array<string,mixed> */
 	private $options = [];
 
 	public function __construct( $lessc = null, $sourceName = null ) {
@@ -129,8 +136,7 @@ class lessc {
 		$parser->parse( $string );
 		$out = $parser->getCss();
 
-		$parsed = Less_Parser::AllParsedFiles();
-		foreach ( $parsed as $file ) {
+		foreach ( $parser->getParsedFiles() as $file ) {
 			$this->addParsedFile( $file );
 		}
 
@@ -165,8 +171,7 @@ class lessc {
 		$parser->parseFile( $fname );
 		$out = $parser->getCss();
 
-		$parsed = Less_Parser::AllParsedFiles();
-		foreach ( $parsed as $file ) {
+		foreach ( $parser->getParsedFiles() as $file ) {
 			$this->addParsedFile( $file );
 		}
 
