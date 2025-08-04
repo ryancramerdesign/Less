@@ -1,23 +1,41 @@
 <?php
 /**
  * @private
+ * @see less-3.13.1.js#AtRule.prototype
  */
-class Less_Tree_Directive extends Less_Tree implements Less_Tree_HasValueProperty {
-
+class Less_Tree_AtRule extends Less_Tree implements Less_Tree_HasValueProperty {
+	/** @var string */
 	public $name;
+	/** @var Less_Tree|null */
 	public $value;
+	/** @var Less_Tree_Ruleset[]|null */
 	public $rules;
+	/** @var int|null */
 	public $index;
+	/** @var bool */
 	public $isReferenced;
+	/** @var bool */
 	public $isRooted;
+	/** @var array|null */
 	public $currentFileInfo;
+	/** @var mixed|null */
 	public $debugInfo;
 
-	public function __construct( $name, $value = null, $rules = null, $index = null, $isRooted = false, $currentFileInfo = null, $debugInfo = null ) {
+	public function __construct(
+		$name,
+		$value = null,
+		$rules = null,
+		$index = null,
+		$isRooted = false,
+		$currentFileInfo = null,
+		$debugInfo = null,
+		$isReferenced = false
+	) {
 		$this->name = $name;
+		// TODO: Less.js 3.13 handles `$value instanceof Less_Tree` and creates Anonymous here.
 		$this->value = $value;
 
-		if ( $rules ) {
+		if ( $rules !== null ) {
 			if ( is_array( $rules ) ) {
 				$this->rules = $rules;
 			} else {
@@ -28,12 +46,14 @@ class Less_Tree_Directive extends Less_Tree implements Less_Tree_HasValuePropert
 			foreach ( $this->rules as $rule ) {
 				$rule->allowImports = true;
 			}
+			// TODO: Less.js 3.13 handles setParent() here
 		}
 
 		$this->index = $index;
 		$this->isRooted = $isRooted;
 		$this->currentFileInfo = $currentFileInfo;
 		$this->debugInfo = $debugInfo;
+		$this->isReferenced = $isReferenced;
 	}
 
 	public function accept( $visitor ) {
@@ -45,18 +65,24 @@ class Less_Tree_Directive extends Less_Tree implements Less_Tree_HasValuePropert
 		}
 	}
 
+	public function isRulesetLike() {
+		return $this->rules || !$this->isCharset();
+	}
+
+	public function isCharset() {
+		return $this->name === "@charset";
+	}
+
 	/**
 	 * @see Less_Tree::genCSS
 	 */
 	public function genCSS( $output ) {
-		$value = $this->value;
-		$rules = $this->rules;
 		$output->add( $this->name, $this->currentFileInfo, $this->index );
 		if ( $this->value ) {
 			$output->add( ' ' );
 			$this->value->genCSS( $output );
 		}
-		if ( $this->rules ) {
+		if ( $this->rules !== null ) {
 			Less_Tree::outputRuleset( $output, $this->rules );
 		} else {
 			$output->add( ';' );
@@ -89,7 +115,7 @@ class Less_Tree_Directive extends Less_Tree implements Less_Tree_HasValuePropert
 		$env->mediaPath = $mediaPathBackup;
 		$env->mediaBlocks = $mediaPBlocksBackup;
 
-		return new self( $this->name, $value, $rules, $this->index, $this->isRooted, $this->currentFileInfo, $this->debugInfo );
+		return new self( $this->name, $value, $rules, $this->index, $this->isRooted, $this->currentFileInfo, $this->debugInfo, $this->isReferenced );
 	}
 
 	public function variable( $name ) {
@@ -99,18 +125,27 @@ class Less_Tree_Directive extends Less_Tree implements Less_Tree_HasValuePropert
 	}
 
 	public function find( $selector ) {
+		// TODO: Less.js 3.13.1 adds multiple variadic arguments here
 		if ( $this->rules ) {
 			return $this->rules[0]->find( $selector, $this );
 		}
 	}
 
-	// rulesets: function () { if (this.rules) return tree.Ruleset.prototype.rulesets.apply(this.rules); },
+	// TODO: Implement less-3.13.1.js#AtRule.prototype.rulesets
+	// Unused?
+
+	// TODO: Implement less-3.13.1.js#AtRule.prototype.outputRuleset
+	// We have ours in Less_Tree::outputRuleset instead.
 
 	public function markReferenced() {
 		$this->isReferenced = true;
 		if ( $this->rules ) {
 			Less_Tree::ReferencedArray( $this->rules );
 		}
+	}
+
+	public function getIsReferenced() {
+		return !isset( $this->currentFileInfo['reference'] ) || !$this->currentFileInfo['reference'] || $this->isReferenced;
 	}
 
 	public function emptySelectors() {
