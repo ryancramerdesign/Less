@@ -27,7 +27,7 @@ class Less extends WireData implements Module, ConfigurableModule {
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Less',
-			'version' => 5,
+			'version' => 6,
 			'summary' => 'Less CSS preprocessor for ProcessWire using Wikimedia Less.',
 			'author' => 'Bernhard Baumrock, Ryan Cramer',
 			'icon' => 'css3',
