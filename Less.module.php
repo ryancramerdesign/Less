@@ -19,6 +19,7 @@
  * ~~~~~
  * 
  * @property bool|int $useCache
+ * @property string $lessVersion
  * 
  */
 
@@ -27,7 +28,7 @@ class Less extends WireData implements Module, ConfigurableModule {
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Less',
-			'version' => 5,
+			'version' => 6,
 			'summary' => 'Less CSS preprocessor for ProcessWire using Wikimedia Less.',
 			'author' => 'Bernhard Baumrock, Ryan Cramer',
 			'icon' => 'css3',
@@ -35,12 +36,21 @@ class Less extends WireData implements Module, ConfigurableModule {
 			'requires' => 'ProcessWire>=3.0.179, PHP>=7.4.0',
 		);
 	}
+	
+	const defaultLessVersion = '4.1.1';
 
 	/**
 	 * @var \Less_Parser|null
 	 * 
 	 */
 	protected $parser = null;
+
+	/**
+	 * Cached result from getLessVersions()
+	 * 
+	 * @var array 
+	 */
+	protected $lessVersions = [];
 
 	/**
 	 * @var array
@@ -90,6 +100,7 @@ class Less extends WireData implements Module, ConfigurableModule {
 	 */
 	public function __construct() {
 		$this->set('useCache', false);
+		$this->set('lessVersion', '');
 		$this->options = $this->defaults;
 		parent::__construct();
 	}
@@ -114,6 +125,21 @@ class Less extends WireData implements Module, ConfigurableModule {
 		$this->parseFiles = array();
 		$this->parseStr = false;
 		return $this;
+	}
+
+	/**
+	 * Set 
+	 * 
+	 * @param string $key
+	 * @param string $value
+	 * @return self
+	 * 
+	 */
+	public function set($key, $value) {
+		if($key === 'lessVersion' && $value !== '') {
+			if(!ctype_digit(str_replace('.', '', $value))) $value = self::defaultLessVersion;
+		}
+		return parent::set($key, $value);
 	}
 
 	/**
@@ -287,7 +313,9 @@ class Less extends WireData implements Module, ConfigurableModule {
 	 */
 	public function lessc() {
 		if(!class_exists('\lessc')) {
-			require_once(__DIR__ . '/wikimedia/less.php/lessc.inc.php'); 
+			$lessVersion = $this->getLessVersion();
+			$file = __DIR__ . "/less/$lessVersion/lessc.inc.php";
+			require_once($file); 
 		}
 		return new \lessc();
 	}
@@ -318,7 +346,9 @@ class Less extends WireData implements Module, ConfigurableModule {
 		if($this->parser) return $this->parser;
 		
 		if(!class_exists('\Less_Parser', false)) {
-			require_once(__DIR__ . '/wikimedia/less.php/lib/Less/Autoloader.php');
+			$lessVersion = $this->getLessVersion();
+			$file = __DIR__ . "/less/$lessVersion/lib/Less/Autoloader.php";
+			require_once($file);
 			\Less_Autoloader::register();
 		}
 		
@@ -406,9 +436,63 @@ class Less extends WireData implements Module, ConfigurableModule {
 		return $cssFile ? file_get_contents($cssFile) : '';
 	}
 	 */
+
+	/**
+	 * Get LESS version to use
+	 * 
+	 * @return string
+	 * 
+	 */
+	public function getLessVersion() {
+		$version = $this->lessVersion;
+		$versions = $this->getLessVersions();
+		
+		if(empty($version) && $this->wire()->session->getFor($this, 'installed')) {
+			// module was just installed, choose newest possible less version
+			// note: versions.json must be ordered newest to oldest
+			foreach($versions as $info) {
+				if($info['supported']) {
+					$version = $info['less'];
+					break;
+				}
+			}
+		}
+		
+		if(empty($version) || !is_dir(__DIR__ . "/less/$version/")) {
+			$version = self::defaultLessVersion;
+		} else if(empty($versions[$version]['supported'])) {
+			// fallback to one supported by PHP version
+			$version = self::defaultLessVersion;
+		}
+		
+		if(!$this->lessVersion) {
+			$this->lessVersion = $version;
+			$this->wire->modules->saveConfig($this, 'lessVersion', $version);
+		}
+		
+		return $version;
+	}
+
+	/**
+	 * Get array of less versions and required php versions
+	 * 
+	 * @return array like [ '4.1.1' => [ 'less' => '4.1.1', 'php' => '7.4.0', 'supported' => true ] ]
+	 * 
+	 */
+	public function getLessVersions() {
+		if(empty($this->lessVersions)) {
+			$versions = json_decode(file_get_contents(__DIR__ . '/less/versions.json'), true);
+			foreach($versions as $info) {
+				$info['supported'] = version_compare(PHP_VERSION, $info['php']) >= 0;
+				$this->lessVersions[$info['less']] = $info;
+			}
+		}
+		return $this->lessVersions; 
+	}
 	
 	public function ___install() {
 		$this->cachePath();
+		$this->wire()->session->setFor($this, 'installed', true);
 	}
 	
 	public function ___uninstall() {
@@ -422,15 +506,25 @@ class Less extends WireData implements Module, ConfigurableModule {
 	 *
 	 */
 	public function getModuleConfigInputfields(InputfieldWrapper $inputfields) {
-		$modules = $this->wire()->modules;
 		$files = $this->wire()->files;
 		$input = $this->wire()->input;
+	
+		$f = $inputfields->InputfieldRadios;
+		$f->attr('name', 'lessVersion');
+		$f->label = $this->_('Wikimedia LESS version to use');
+		$f->notes = sprintf($this->_('Your PHP version is %s.'), PHP_VERSION);
+		foreach($this->getLessVersions() as $info) {
+			$attrs = [];
+			if(!$info['supported']) $attrs['disabled'] = 'disabled';
+			$f->addOption($info['less'], "[code]$info[less][/code] [span.detail] (PHP $info[php]+) [/span]", $attrs);
+		}
+		$f->val($this->getLessVersion());
+		$inputfields->add($f);
 		
-		/** @var InputfieldToggle $f */
-		$f = $modules->get('InputfieldToggle');
+		$f = $inputfields->InputfieldToggle;
 		$f->attr('name', 'useCache');
 		$f->label = $this->_('Allow use of file system cache? (/site/assets/cache/Less)'); 
-		$f->description = $this->_('This can help with the performance of parsing LESS files into CSS files.'); 
+		$f->description = $this->_('This can help with the performance of parsing LESS files into CSS files.');
 		$f->val((int) $this->useCache);
 		$inputfields->add($f);
 
@@ -443,8 +537,7 @@ class Less extends WireData implements Module, ConfigurableModule {
 		}
 
 		if($numFiles) {
-			/** @var InputfieldCheckbox $f */
-			$f = $modules->get('InputfieldCheckbox');
+			$f = $inputfields->InputfieldCheckbox;
 			$f->attr('name', '_clearCache');
 			$f->label =
 				$this->_('Clear cache?') . ' ' .
