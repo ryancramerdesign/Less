@@ -28,7 +28,7 @@ class Less extends WireData implements Module, ConfigurableModule {
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Less',
-			'version' => 6,
+			'version' => 7,
 			'summary' => 'Less CSS preprocessor for ProcessWire using Wikimedia Less.',
 			'author' => 'Bernhard Baumrock, Ryan Cramer',
 			'icon' => 'css3',
@@ -37,7 +37,7 @@ class Less extends WireData implements Module, ConfigurableModule {
 		);
 	}
 	
-	const defaultLessVersion = '4.1.1';
+	const defaultLessVersion = '5.5.1';
 
 	/**
 	 * @var \Less_Parser|null
